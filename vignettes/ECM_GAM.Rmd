@@ -1,0 +1,159 @@
+---
+title: "ECM_GAM"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ECM_GAM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+install.packages("devtools")
+devtools::install_github("johnlpearce/ECM")
+```
+
+#Introduction
+## Overview
+The **R** package *ECM* has been developed for application of the *self-organizing map (SOM)* algorithm for analyses of complex, highdimensional data. The development of *ECM* is motivated by environmental health and epidemiology settings where exposure assessment and health effects studies often encompass multiple risk factors involving complex environmental mixtures.  
+
+This document *ECM_GAM* illustrates how to use the R package *ECM* to apply a unified SOM-GAM approach to support epidemiologic analysis of environmental mixtures. Here we illustrate the approach using a *well-established* simulated data set that was designed to reflect patterning typically seen in environmental exposure data.   
+
+Please send any comments, suggestions, or bug reports to pearcejo@musc.edu.
+
+#Example Data
+*ECM* includes simulated data from a recent NIEHS Mixtures Workshop, which can be obtained here:
+https://www.niehs.nih.gov/about/events/pastmtg/2015/statistical/index.cfm
+
+
+For this example we use Data Set 1: Chemical Mixture Simulated Data. These synthetic data can be considered as the results of a prospective cohort epidemiologic study. The outcome cannot cause the exposures (as might occur in a cross-sectional study). Correlations between exposure variables can be thought of as caused by common sources or modes of exposure.The nuisance variable Z can be assumed to be a potential confounder and not a collider.
+
+Number of records: 500
+Data per subject: Y, X1, X2, X3, X4, X5, X6, X7, Z
+Y = outcome data, 1 continuous variable
+X1 - X7= exposure data, 7 continuous variables
+Z: potential confounder, binary
+
+Additional information:
+For purposes of Data Set #1, there is no loss to follow up, missing or censored data, mismeasurement of the variables (Y, Xi, Z), or many of the other potential biases. 
+One may also assume that the seven exposure variables X1, X7 and Z are not intermediate variables and not colliders.There are no other confounders or effect measure modifiers. Random noise has been added to the outcome variable.
+
+##Load Example Data
+```{r dataset, echo=TRUE}
+data(dataset1)
+summary(dataset1)
+```
+
+#Methodology and Application
+## Data Prep
+The first step in our analyses is to identify data for analysis. Here we extract the outcome Y, the exposures X and covariates Z. 
+
+```{r datatrn,  echo=FALSE}
+Y<-dataset1$Y
+X<-dataset1[,3:9]
+Z<-as.factor(dataset1$Z)
+hist(Y)
+```
+
+## Feature scaling  
+Data sets often contain multiple features spanning varying magnitudes, ranges, and units. This can be problematic for many multivariate techniques and thus feature scaling in often necessary. In this example, we employ data standardization where the values are centered around the mean with a unit standard deviation. This means that the mean of each variable becomes zero and the resultant distribution has a unit standard deviation.      
+
+```{r datascale, echo=TRUE}
+X_sc<-scale(X, center=TRUE, scale=TRUE)
+summary(X_sc)
+```
+## Colors
+```{r colormod, echo=TRUE}
+#Specify custom colors to correspond with synthetic health associations. Red: exposure has positive association with outcome; Grey: exposure has no association; Blue: exposure has negative association with outcome.
+cust_col<-c("darkred", "darkred", "darkgrey", "darkblue", "darkblue", "darkgrey", "darkred")
+plot(1:7, col=cust_col, pch=19, cex=4)
+
+```
+
+##Making the Map 
+
+### The algorithm
+We construct our Exposure Continuum Map by applying the Self-Organizing Map (SOM) algorithm. SOM is an artificial neural network (ANN) that applies spatially-correlated learning with an integrated neighborhood function in order to discover and ‘map’ representative features within multivariate data (Kohonen 2013). The ‘map’ is a low-dimensional representation that is used to illustrate discovered profiles in a spatially organized way. This unique ‘self-organizing’ feature ensures that the resulting mapping provides an arrangement of categories where neighboring profiles are similar and distal are more distinct.
+
+The primary function for fitting a map in our **ECM** package is through the *map_ecm* function. This function serves as a wrapper for the *som* function in the **kohonen** package and returns an object of class 'kohonen'. This provides an enormous amount of flexibility for the fitted ECM as both **kohonen**  and **aweSOM** R packages can be used for plotting and assessment of results. For more detail on **kohonen** and **aweSOM** see:  https://CRAN.R-project.org/.
+
+Our framework is outlined below. This includes: 1) finding an appropriate map size; 2) optimizing the fit of the final map; 3) plotting results; 4) preparing data for subsequent analysis; and 5) exploring health effects.   
+
+###Step 1: Determining map size. 
+Map size is an important user input as it governs a number of important properties in the resulting exposure metric. For example, model accuracy, bias, group cohesion, and sample size are all dependent on the resolution of the mapping. To assist user decision-making, we developed the *map_size* function in order to examine how explained variance, bias, model fit, group cohesion, and sample size vary across a range of commonly applied map dimensions. It is important to note that like other unsupervised learning tools, there is no right answer here and thus evaluation criteria may vary across differing applications. Here, we are primarily interested in model fit and explore how fit changes across maps with a minimum of 2 nodes up to a maximum of 50 nodes.
+
+```{r mapsize, echo=TRUE,fig.height=8, fig.width=6}
+ms<-map_size(X_sc, kmx=10)
+print(ms)
+```
+
+Here we see that 'elbowing' in the AIC occurs at 25 nodes, suggesting that a map of xdim=5 and ydim=5 is the 'optimal' model.      
+
+###Step 2: Optimizing fit of final map. 
+#Once an appropriate map size has been determined it is important to construct a well-organized mapping for this dimension. To assist with this aspect of map making, we assess the organizational characteristics of maps fit from a range of initialization values. This is implemented via the *map_inits* function, which integrates map evaluation strategies from the **aweSOM** package. 
+
+```{r mapinits, echo=TRUE}
+mi<-map_inits(trn_dat=X_sc, xdim=5, ydim=5, nstarts=5)
+mi
+#Extract optimal initialization values
+init<-mi$opt_init
+```
+
+Output from *map_inits* returns the optimal initialization values based on the Kaski-Lagus error metric which combines aspects of quantizaton and topographic error. The initial values are then passed to the *map_ecm* function to ensure optimal mapping. 
+
+```{r mapecm, echo=TRUE}
+ecm<-map_ecm(trn_dat=X_sc,xdim=5, ydim=5, inits=init) 
+summary(ecm)
+```
+###Step 3: Plotting the map.
+The results from an ECM can be presented in a broad range of formats tailored to emphasize a number of characteristics of the mapping. We note that a broad suite of plotting features are available in the **kohonen** and **aweSOM** packages and thus users are encouraged to explore both the **plot.kohonen** and **aweSOMplot** functions. Here, we apply the *map_plot* function as we desired to create mapping that well illustrates the discovered patterns in the data as well as the frequency of their occurrence. To achieve, discovered profiles are illustrated using radial bars where the size of the bar is determined by the normalized mean. Labels reflect SOM Node units and are presented above each profile in brackets [] and the relative frequencies (%) of profile classifications are in the bottom. We also facilitated custimization of a number of features to help fine tune the mappings.  
+
+```{r mapplots, echo=TRUE, fig.height=7, fig.width=7}
+map_plot(map_obj=ecm, varnames=NULL, colormod=cust_col,
+                     nodelab=TRUE, labtype="IDs", labsize=1,
+                     addFreq=TRUE, freqtype="frq", freqsize=0.75,
+                     legsymsize=2, leglabsize=1, legtxtlas=2, legloc="bottom")
+```
+
+###Step 4: Preparing an analytic data set. 
+Integrating results from ECM with existing data is an important step for subsequent analysis. To assist, we developed the *mapmetric* function in order to allow users to routinely extract map coordinates and node id's for subsequent analyses. Please note the the x-axis has been labeled with the u-coordinate and the y-axis the v-coordinate to minimize labeling issues in subsequent analysis.
+
+```{r mapmetric, echo=TRUE}
+mm<-map_metric(ecm)
+head(mm)
+```
+
+To prepare our analytic data we merge the ECM assignments with the original data set.
+```{r moddat, echo=TRUE}
+moddata<-merge(dataset1, mm, by="OBS")
+head(moddata)
+```
+
+###Step 5: Exploration of health effects.
+The final stage of our ECM framework is to perform a 'total mixtures' analysis using the locational assignments of our ECM. To achieve, we integrate the profile coordinates [U,V] from our ECM as a smooth bivariate interaction term within a generalized additive model (GAM) in order to assess whether location on our map associated with variation in our outcome after control of confounders. We employed GAMs for this task as we desired penalization of our smoothers and it has proven robust in spatial settings where coordinate-based smooth terms have been used to model spatial effects. Here, the result is a 3-dimensional response surface that can be interpreted as a joint-dose response function for outcome to variability across the total mixture. In addition, the spatial smoothing alleviates challenges imposed by mixture profiles with smaller sample sizes. We express this model as:
+
+                                      Y_i=Z_i β+s(U_i,V_i )+ϵ_i 			                       	
+where Y_i is the subject outcome at locations U_i,V_i; β is the vector of regression parameters for covariates Z_i; s(U_i,V_i) is a tensor product smooth term of the ECM coordinates; and ϵ_i is an error term. Smooth functions were developed through a combination of model selection and automatic smoothing parameter selection using penalized regression splines, which optimize the fit and make an effort to minimize the number of dimensions in the model. We employ a generalized additive model via the *gam* function from the **mgcv** package. 
+```{r mapgam, echo=TRUE}
+mapgam<-mgcv::gam(Y ~ Z + te(U,V), data=moddata)
+summary(mapgam)
+```
+In this example, we see that the ECM bivariate smooth model was a significant predictor in the model. 
+
+Finally, we illustrate the estimated joint effect from our model using a 3-D surface plot developed from the *vis.gam* function in the **mgcv** package.
+```{r plotgam, echo=TRUE, fig.height=7, fig.width=7}
+  #Plot GAM results
+  mgcv::vis.gam(mapgam, view=c("U", "V"), color="heat", type="link",
+          ticktype="detailed", theta=30, phi=45, expand=0.85,
+          zlab="Y", xlab="U-Coordinate", ylab="V-Coordinate")
+ title(main=" ECM Joint Dose-Response Function")
+ 
+```
+This visualization reveals that the peak response occurred in the upper-mid left section of the ECM. Profiles assigned to this location were dominated by X1,X2, and X7, which were positively associated with the outcome. These simulated findings serve to illustrate how our ECM approach provides a promising framework for supporting studies of complex exposure mixtures.    
+

@@ -1,0 +1,22 @@
+Package: ECM
+Title: ECM: Exposure Continuum Mapping  
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "John L.",
+           family = "Pearce",
+           role = c("aut", "cre"),
+           email = "pearcejo@musc.edu",
+           comment = c(ORCID = "0000-0002-7343-4112"))
+Description: This package provides a collection of functions for integrating spatially-correlated learning into study of mixture problems.
+License: GPL-3
+Imports: kohonen, aweSOM, mgcv
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Depends: 
+    R (>= 2.10)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
