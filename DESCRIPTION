@@ -9,7 +9,7 @@ Authors@R:
            comment = c(ORCID = "0000-0002-7343-4112"))
 Description: This package provides a collection of functions for integrating spatially-correlated learning into study of mixture problems.
 License: GPL-3
-Imports: kohonen, aweSOM, mgcv
+Imports: kohonen, aweSOM, mgcv, fpc, cluster, reshape2, ggplot2
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
