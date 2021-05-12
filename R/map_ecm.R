@@ -34,7 +34,7 @@ map_ecm <- function (trn_dat, xdim=5, ydim=4, maptopo=NULL, itermax=NULL, inits=
 
    #Apply SOM via Kohonens C code
    ecm<-kohonen::som(X,grid=kohonen::somgrid(xdim=xdim, ydim=ydim, topo=maptopo),
-                        rlen=itermax, mode=lmode, alpha=c(0.05, 0.01),
+                        rlen=itermax, mode=lmode, alpha=c(0.05, 0.01), init=inits,
                         dist.fcts=distmet)
 
 

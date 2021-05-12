@@ -1,0 +1,36 @@
+#' Data Set 3 Mixture Simulated Data with an Environmentally Relevant Complex Grouping Pattern
+#'
+#' This data file is intended to represent data from a exposure assessment study of 24 biomarkers (e.g., PCBs, dioxins, furans) from biomonitoring data.
+#'
+#' @format A data frame with 500 rows and 24 variables:
+#' \describe{
+#'   \item{X1}{a continous exposure biomarker}
+#'   \item{X2}{a continous exposure biomarker}
+#'   \item{X3}{a continous exposure biomarker}
+#'   \item{X4}{a continous exposure biomarker}
+#'   \item{X5}{a continous exposure biomarker}
+#'   \item{X6}{a continous exposure biomarker}
+#'   \item{X7}{a continous exposure biomarker}
+#'   \item{X8}{a continous exposure biomarker}
+#'   \item{X9}{a continous exposure biomarker}
+#'   \item{X10}{a continous exposure biomarker}
+#'   \item{X11}{a continous exposure biomarker}
+#'   \item{X12}{a continous exposure biomarker}
+#'   \item{X13}{a continous exposure biomarker}
+#'   \item{X14}{a continous exposure biomarker}
+#'   \item{X15}{a continous exposure biomarker}
+#'   \item{X16}{a continous exposure biomarker}
+#'   \item{X17}{a continous exposure biomarker}
+#'   \item{X18}{a continous exposure biomarker}
+#'   \item{X19}{a continous exposure biomarker}
+#'   \item{X20}{a continous exposure biomarker}
+#'   \item{X21}{a continous exposure biomarker}
+#'   \item{X22}{a continous exposure biomarker}
+#'   \item{X23}{a continous exposure biomarker}
+#'   \item{X24}{a continous exposure biomarker}
+#'
+#'   ...
+#' }
+#
+"dataset3"
+

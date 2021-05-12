@@ -74,7 +74,7 @@ map_inits <- function (trn_dat, xdim=4, ydim=3, maptopo=NULL, itermax=NULL,
    set.seed(seedset)
    inits<-aweSOM::somInit(traindat=trn_dat, nrows=xdim, ncols=ydim, method=seedopt)
 
-   mapinits<-list(seed_eval=seed_eval, opt_init=inits)
+   mapinits<-list(seed_eval=seed_eval, seed_set=seedset, opt_init=inits)
    return(mapinits)
 }
 

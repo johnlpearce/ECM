@@ -102,7 +102,7 @@ map_plot<-function(map_obj, varnames=NULL, colormod=NULL,
     graphics::stars(x=data.frame(map_obj$codes), locations=map_obj$grid$pts,
                     draw.segments=TRUE, axes=TRUE, scale=TRUE,
                     len = 0.4, col.segments=colormod,
-                    labels=NULL, ylim=c(0,ydim))
+                    labels=NULL, ylim=c(0.5, ydim), lty='blank')
 
     #Specify which borders to use
     if(identical(map_obj$grid$topo, "rectangular")){
@@ -135,7 +135,7 @@ map_plot<-function(map_obj, varnames=NULL, colormod=NULL,
     graphics::stars(x=data.frame(map_obj$codes), locations=map_obj$grid$pts,
                     draw.segments=TRUE, axes=TRUE, scale=TRUE,
                     len = 0.4, col.segments=colormod,
-                    labels=NULL, ylim=c(0,ydim))
+                    labels=NULL, ylim=c(0.5, ydim), lty='blank')
 
     #Specify which borders to use
     if(identical(map_obj$grid$topo, "rectangular")){
@@ -177,7 +177,7 @@ map_plot<-function(map_obj, varnames=NULL, colormod=NULL,
       graphics::stars(x=data.frame(map_obj$codes), locations=map_obj$grid$pts,
                       draw.segments=TRUE, axes=TRUE, scale=TRUE,
                       len = 0.4, col.segments=colormod,
-                      labels=NULL, ylim=c(0,ydim))
+                      labels=NULL, ylim=c(0.5, ydim), lty='blank')
 
       #Specify which borders to use
       if(identical(map_obj$grid$topo, "rectangular")){

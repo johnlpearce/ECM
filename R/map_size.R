@@ -71,7 +71,7 @@ map_size<-function(trn_dat, kmn=NULL, kmx=NULL, itermax.=NULL, nstarts.=NULL, ma
   if (is.null(maptopo.)) maptopo. <- "hexagonal"
   if (is.null(distmet.)) distmet.<-"euclidean"
   if (is.null(lmode.)) lmode. <- "online"
-  if (is.null(nstarts.)) nstarts. <- 5
+  if (is.null(nstarts.)) nstarts. <- 1
 
   MAP_EVAL<-data.frame()
   CLASS_EVAL<-data.frame()
@@ -87,12 +87,31 @@ map_size<-function(trn_dat, kmn=NULL, kmx=NULL, itermax.=NULL, nstarts.=NULL, ma
 
     opt_init<-mi$opt_init
 
-    map_trn<-map_ecm(trn_dat=data_trn, xdim=somx, ydim=somy, itermax=itermax.,
+    map_obj<-map_ecm(trn_dat=data_trn, xdim=somx, ydim=somy, itermax=itermax.,
                     maptopo=maptopo., distmet=distmet., lmode=lmode., inits=opt_init)
-    print(summary(map_trn))
+    print(summary(map_obj))
 
-    #Apply map_ecm summary function
-    map_stat<-map_stats(map_trn)
+    #Characterize summary features
+    #Map_stats
+    map_stat<-map_stats(map_obj)
+
+    #SOM GRID and coordinates
+    XYs<-paste(round(map_obj$grid$pts[,1],1),round(map_obj$grid$pts[,2],1), sep="")
+    NODE<-1:somk
+    #SOM Coordinates and reference table
+    som_grid<-data.frame(NODE=factor(NODE),
+                         SOM_X=as.numeric(map_obj$grid$pts[,1]),
+                         SOM_Y=as.numeric(map_obj$grid$pts[,2]))
+
+    #Summarize Frequency Assignments
+    N<-table(map_obj$unit.classif)
+    FREQ<-round(100*(table(map_obj$unit.classif)/sum(table(map_obj$unit.classif))),2)
+    freq.tab<-data.frame(N, FREQ)
+    freq.tab2<-merge(som_grid, freq.tab, by.x="NODE", by.y="Var1", all.x=TRUE)
+    freq.tab2$Var1.1<-NULL
+    colnames(freq.tab2)<-c("NODE","SOM_X","SOM_Y","N","FREQ")
+    freq.tab2<-freq.tab2[order(as.numeric(freq.tab2$NODE)),]
+
 
     map_eval<-data.frame(xdim=somx, ydim=somy, k=somk,
                        R2=map_stat$R2,
@@ -104,8 +123,8 @@ map_size<-function(trn_dat, kmn=NULL, kmx=NULL, itermax.=NULL, nstarts.=NULL, ma
 
 
     class_eval<-data.frame(xdim=somx, ydim=somy, k=somk,
-                           N=as.numeric(table(map_trn$unit.classif)),
-                           FREQ=100*(as.numeric(table(map_trn$unit.classif))/sum(as.numeric(table(map_trn$unit.classif)))),
+                           N=freq.tab2$N,
+                           FREQ=freq.tab2$FREQ,
                            WCSS=map_stat$WCSS,
                            BCSS=map_stat$BCSS,
                            WB_RATIO=mean(map_stat$WCSS)/map_stat$BCSS)
